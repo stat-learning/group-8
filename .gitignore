@@ -3,4 +3,8 @@
 .RData
 .Ruserdata
 .gitignore
+<<<<<<< HEAD
 .group-8.Rproj
+=======
+.group-8.Rproj
+>>>>>>> 596c6a0f5bbe7e46e184e9d764b980525cf9bd26
