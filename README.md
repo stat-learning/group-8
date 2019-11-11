@@ -2,4 +2,6 @@
 
 Evan Pugh  
 Isidore Weis  
-Isaac Martin
+Isaac Martin  
+  
+This is a sentence about a project, theoretically.
