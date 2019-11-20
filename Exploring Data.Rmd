@@ -7,4 +7,11 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+death_rates = death_rates[,-1]
+death_rates = death_rates[,-2]
+death_rates =  death_rates[,-3]
+death_rates =  death_rates[,-4]
+death_rates = death_rates[, -6]
+death_rates = death_rates[, -6]
+death_rates
 ```
