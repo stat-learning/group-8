@@ -1,0 +1,15 @@
+---
+title: "Exploratory Data Analysis"
+output: html_document
+---
+
+## Variable of Interest
+Deaths per 100,000 of population (future)
+
+## Potential Predictors
+Deaths per 100,00 of population (past)  
+Population  
+GDP  
+Health expenditure  
+Percent of population covered by health insurance  
+Total health and social employment
