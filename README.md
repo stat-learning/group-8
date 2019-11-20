@@ -1,12 +1,12 @@
-# group-8
+# Group 8
 
 #### Isaac Martin, Evan Pugh, Isidore Weis
 
-#### Project:
+## Project:
 
-We will attempt to build a model to determine whether or not a Facebook ad was created by a bot based on the text it contains. The model will be trained on data gathered from https://github.com/russian-ad-explorer/russian-ad-datasets and Facebook's ad database.
+We will attempt to build a model to predict future mortality rates of certain diseases in a country based on other data about the country. The model will be trained on data from https://stats.oecd.org/Index.aspx?ThemeTreeId=9.
 
-#### Deadlines:
+## Deadlines:
 
 Pre-proposal: Sunday 11/3 11:59 pm  
 Group proposal: Thursday 11/7 11:59 pm  
