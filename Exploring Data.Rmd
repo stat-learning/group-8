@@ -1,6 +1,6 @@
 ---
-title: "Untitled"
-author: "Isaac Martin"
+title: "Exploring Data"
+author: "Group 8"
 date: "11/20/2019"
 output: github_document
 ---
