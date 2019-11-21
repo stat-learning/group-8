@@ -7,11 +7,76 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-death_rates = death_rates[,-1]
-death_rates = death_rates[,-2]
-death_rates =  death_rates[,-3]
-death_rates =  death_rates[,-4]
-death_rates = death_rates[, -6]
-death_rates = death_rates[, -6]
-death_rates
+employment = employment[,-1]
+employment = employment[,-2]
+employment =  employment[,-3]
+employment =  employment[,-4]
+employment = employment[, -6]
+employment = employment[, -6]
+employment
 ```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+GDPs = GDPs[,-1]
+GDPs = GDPs[,-2]
+GDPs =  GDPs[,-3]
+GDPs =  GDPs[,-4]
+GDPs = GDPs[, -6]
+GDPs = GDPs[, -6]
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+employment = employment[,-1]
+employment = employment[,-2]
+employment =  employment[,-3]
+employment =  employment[,-4]
+employment = employment[, -6]
+employment = employment[, -6]
+employment 
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+GDPs = GDPs[,-1]
+GDPs = GDPs[,-2]
+GDPs =  GDPs[,-3]
+GDPs =  GDPs[,-4]
+GDPs = GDPs[, -6]
+GDPs = GDPs[, -6]
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+insurance = insurance[,-1]
+insurance = insurance[,-2]
+insurance =  insurance[,-3]
+insurance =  insurance[,-4]
+insurance = insurance[, -6]
+insurance = insurance[, -6]
+insurance 
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+populations = populations[,-1]
+populations = populations[,-2]
+populations =  populations[,-3]
+populations =  populations[,-4]
+populations = populations[, -6]
+populations = populations[, -6]
+populations
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+total =rbind(death_rates, insurance, populations, GDPs, employment)
+
+```
+
+
