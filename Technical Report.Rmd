@@ -1,0 +1,183 @@
+---
+title: "Technical Report"
+author: "Evan Pugh"
+date: "12/1/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(imager)
+library(dplyr)
+OECD <- load.image("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/OECD_member_states_map.svg/2560px-OECD_member_states_map.svg.png")
+
+```
+
+
+### Introduction
+
+Our data comes from the OECD, or Organisation for Economic Co-operation and Development. The OECD is a group of nations who share data that they have gathered about themselves in order to seek solutions to shared problems, identify good policies and coordinate efforts between member countries.  Here is a map highlighting all 36 nations in the OECD:
+```{r}
+plot(OECD, axes = FALSE)
+
+```
+As you can probably tell from looking at the map, most of the countries on this map are countries that have a high income per capita and a high Human Development Index. In addition to these 36 countries, our data set also contains data on Brazil, Colombia, Costa Rica, Russia and South Africa. Our data covers time from 1990 to 2016
+
+One thing that provided troublesome is the fact that when importing data from OECD, it simply removed any missing data rather than leaving it as NA. I spent a long time trying to find a way to rectify this, but was unable to come up with a solution to this problem. However, since this data set contains very little missing data, I do not think that this will be a major confounding variable.
+
+
+```{r}
+colors = rep(c("black","red","blue","green","violet","yellow","orange"),6)
+shapes = rep(c(1,2,3,4,5,6),7)
+HIV = DeathRates[DeathRates$Variable == "HIV-AIDS",]
+Flu = DeathRates[DeathRates$Variable == "Influenza",]
+Tub = DeathRates[DeathRates$Variable == "Tuberculosis",]
+Neo = DeathRates[DeathRates$Variable == "Neoplasms",]
+Pne= DeathRates[DeathRates$Variable == "Pneumonia",]
+GDPs = GDPs[GDPs$Country!="China (People's Republic of)",]
+GDPs = GDPs[GDPs$Country!="India",]
+GDPs = GDPs[GDPs$Country!="Indonesia",]
+GDPs = GDPs[GDPs$Year>1989,]
+ggplot(HIV, aes(x=Year, y=Value)) + geom_point()
+ggplot(Flu, aes(x=Year, y=Value)) + geom_point()
+ggplot(Tub, aes(x=Year, y=Value)) + geom_point()
+ggplot(Neo, aes(x=Year, y=Value)) + geom_point()
+ggplot(Pne, aes(x=Year, y=Value)) + geom_point()
+mHIV = lm(HIV$Value ~ HIV$Country+HIV$Year)
+mFLu = lm(Flu$Value ~ Flu$Country+Flu$Year)
+mTub = lm(Tuberculosis$Value ~ Tuberculosis$Country+Tuberculosis$Year)
+mNeo = lm(Neoplasms$Value ~ Neoplasms$Country+Neoplasms$Year)
+mPne = lm(Pneumonia$Value ~ Pneumonia$Country+Pneumonia$Year)
+summary(mTub)
+m1 = lm(GDPs$Value ~ GDPs$Country+GDPs$Year)
+summary(m1)
+plot(HIV)
+ggplot(HIV, aes(x=Year, y=Value)) + geom_point()
+
+```
+
+
+
+#### Exploratory Data Analysis
+
+Let's start by plotting the number of deaths per 100,000 people for each of our five causes of death by year. Each of the 41 countries has been given a unique color and shape combination in order to indentify it and track it.
+
+```{r}
+ggplot(HIV, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+  scale_shape_manual(values=shapes[0:41])+
+  scale_color_manual(values=colors[0:41])
+  
+ggplot(Flu, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+  scale_shape_manual(values=shapes[0:41])+
+  scale_color_manual(values=colors[0:41])
+
+ggplot(Tub, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+  scale_shape_manual(values=shapes[0:41])+
+  scale_color_manual(values=colors[0:41])
+
+ggplot(Neo, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+  scale_shape_manual(values=shapes[0:41])+
+  scale_color_manual(values=colors[0:41])
+
+ggplot(Pne, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+  scale_shape_manual(values=shapes[0:41])+
+  scale_color_manual(values=colors[0:41])
+```
+
+
+
+
+First, let's analyze the effect that time has on each of these variables.
+```{r}
+mt1 = lm(HIV$Value ~ HIV$Year)
+summary(mt1)
+mt2 = lm(Flu$Value ~ Flu$Year)
+summary(mt2)
+mt3 = lm(Tub$Value ~ Tub$Year)
+summary(mt3)
+mt4 = lm(Neo$Value ~ Neo$Year)
+summary(mt4)
+mt5 = lm(Pne$Value ~ Pne$Year)
+summary(mt5)
+```
+We find that:
+
+For HIV-AIDS, the year has a coefficient of -0.00809, a t value of -0.348 and a p value of 0.728.
+
+For Influenza, the year has a coefficient of -0.04588, a t value of -8.130 and a p value of 1.21e-15.
+
+For Tuberculosis, the year has a coefficient of -0.002789, a t value of -0.031 and a p value of 0.975.
+
+For Neoplasms, the year has a coefficient of -19.66, a t value of -14.24 and a p value less than 2e-16.
+
+For Pneumonia, the year has a coefficient of -0.7442, a t value of -7.639 and a p value of 4.87e-14.
+
+So for HIV-AIDS and Tuberculosis, year did not have a statistically significant effect on the number of deaths per 100,000 people. For Influenza, Neoplasms and Pneumonia, the death rates have had a very statistically significant decline over the years.
+
+
+```{r}
+final = DeathRates[,3:4]
+final = unique(final)
+final = left_join(final,HIV[,3:5], by = c("Country"="Country","Year"="Year"))
+names(final) <- c("Country","Year", "HIV-Aids")
+
+final = left_join(final,Flu[,3:5], by = c("Country"="Country","Year"="Year"))
+names(final) <- c("Country","Year", "HIV-Aids","Influenza")
+
+final = left_join(final,Tub[,3:5], by = c("Country"="Country","Year"="Year"))
+names(final) <- c("Country","Year", "HIV-Aids","Influenza","Tuberculosis")
+
+final = left_join(final,Neo[,3:5], by = c("Country"="Country","Year"="Year"))
+names(final) <- c("Country","Year", "HIV-Aids","Influenza","Tuberculosis","Neoplasms")
+
+final = left_join(final,Pne[,3:5], by = c("Country"="Country","Year"="Year"))
+names(final) <- c("Country", "Year", "HIV-Aids", "Influenza", "Tuberculosis", "Neoplasms", "Pneumonia")
+
+final = left_join(final,employment[,3:5], by = c("Country"="Country","Year"="Year"))
+names(final) <- c("Country", "Year", "HIV-Aids", "Influenza", "Tuberculosis", "Neoplasms", "Pneumonia","Employment")
+
+final = left_join(final,populations[,3:5], by = c("Country"="Country","Year"="Year"))
+names(final) <- c("Country", "Year", "HIV-Aids", "Influenza", "Tuberculosis", "Neoplasms", "Pneumonia","Employment","Population")
+
+final = left_join(final,GDPs[,3:5], by = c("Country"="Country","Year"="Year"))
+names(final) <- c("Country", "Year", "HIV-Aids", "Influenza", "Tuberculosis", "Neoplasms", "Pneumonia","Employment","Population", "GDP")
+
+View(final)
+```
+
+
+#### Exercise 4
+
+```{r}
+
+
+```
+
+
+
+
+#### Exercise 4
+
+```{r}
+ggplot(GDPs, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+  scale_shape_manual(values=shapes[0:41])+
+  scale_color_manual(values=colors[0:41])
+ggplot(HIV[HIV$Country=="Australia",], aes(x=Year, y=Value)) + geom_point()
+ggplot(GDPs[GDPs$Country=="Australia",], aes(x=Year, y=Value)) + geom_point()
+```
+
+
+#### Exercise 5
+
+```{r}
+cor(HIV$Value, HIV$Year)
+cor(Flu$Value, Flu$Year)
+summary(HIV$Value)
+summary(Flu$Value)
+summary(Tub$Value)
+summary(Neo$Value)
+summary(Pne$Value)
+```
+
+
