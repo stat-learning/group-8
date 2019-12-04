@@ -8,7 +8,10 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(readr)
-
+library(glmnet)
+library(tidyverse)
+library(broom)
+library(glmnet)
 library(ggplot2)
 library(imager)
 library(dplyr)
@@ -184,7 +187,6 @@ summary(m2Pne)
 
 m2Neo = lm(final$Neoplasms~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp + final$Country)
 summary(m2Neo)
-
 ```
 This model for HIV had an R-squared of 0.7729, an increase of 0.5456 from our previous model.
 
@@ -210,6 +212,90 @@ ggplot(Aus, aes(x = Year, y = HIV)) +
 
 ```
 
+```{r}
+set.seed(42)
+predicted = predict(mHIV, final)
+
+testH = na.omit(final[,-4:-7])
+
+View(testH)
+x1 <- testH %>% select(Year, Employment, Population, GDP, Coverage, GovtExp, PublicExp) %>% data.matrix()
+y1 <- testH$HIV
+lambdas <- 10^seq(3, -20, by = -.1)
+cv_fit <- cv.glmnet(x1, y1, alpha = .8, lambda = lambdas)
+
+cv_fit$lambda.min
+temp = final[,-3]
+test2 = na.omit(temp[,-4:-6])
+
+
+x2 <- test2 %>% select(Year, Employment, Population, GDP, Coverage, GovtExp, PublicExp) %>% data.matrix()
+y2 <- test2$Influenza
+lambdas <- 10^seq(1, -8, by = -.1)
+cv_fit2 <- cv.glmnet(x2, y2, alpha = .8, lambda = lambdas)
+cv_fit2$lambda.min
+temp = final[,-3:-4]
+test3 = na.omit(temp[,-4:-5])
+
+x3 <- test3 %>% select(Year, Employment, Population, GDP, Coverage, GovtExp, PublicExp) %>% data.matrix()
+y3 <- test3$Tuberculosis
+
+cv_fit3 <- cv.glmnet(x3, y3, alpha = .8, lambda = lambdas)
+cv_fit3$lambda.min
+
+temp = final[,-3:-5]
+test4 = na.omit(temp[,-4])
+
+x4 <- test4 %>% select(Year, Employment, Population, GDP, Coverage, GovtExp, PublicExp) %>% data.matrix()
+y4 <- test4$Neoplasms
+
+cv_fit4 <- cv.glmnet(x4, y4, alpha = .8, lambda = lambdas)
+cv_fit4$lambda.min
+
+temp = final[,-3:-6]
+test5 = na.omit(temp)
+
+x5 <- test5 %>% select(Year, Employment, Population, GDP, Coverage, GovtExp, PublicExp) %>% data.matrix()
+y5 <- test5$Pneumonia
+
+cv_fit5 <- cv.glmnet(x5, y5, alpha = .8, lambda = lambdas)
+cv_fit5$lambda.min
+
+```
+
+```{r}
+train = sample(1:nrow(x1), nrow(x1)/2)
+x1_test = x1[-train,]
+y1_test = y1[-train]
+dim(x1_test)
+fit1 <- glmnet(x1_test, y1_test, alpha = .8, lambda = 0.0158)
+summary(fit1)
+cv_fit$lambda.min
+preds <- predict(fit1,newx = x1[train,])
+actual <- y1[train]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq <- 1 - rss/tss
+
+
+mHIV = lm(y1_test ~ x1_test)
+summary(mHIV)
+preds2 <- predict(mHIV,newx = x1[train,])
+preds2
+actual
+actual <- y1[train]
+rss <- sum((preds2 - actual2) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq <- 1 - rss/tss
+rsq
+```
 
 
 
+```{r}
+
+coef(fit1)
+
+summary(mHIV)
+
+```
