@@ -88,25 +88,25 @@ Tub = death_rates[death_rates$Variable == "Tuberculosis",]
 Neo = death_rates[death_rates$Variable == "Neoplasms",]
 Pne= death_rates[death_rates$Variable == "Pneumonia",]
 
-ggplot(final, aes(x=Year, y=HIV,color=Country,shape=Country)) + geom_point()+
+ggplot(HIV, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
-  scale_color_manual(values=colors[0:41])
+  scale_color_manual(values=colors[0:41]) + ylab("Deaths from HIV-AIDs per 100,000 people")
   
 ggplot(Flu, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
-  scale_color_manual(values=colors[0:41])
+  scale_color_manual(values=colors[0:41]) + ylab("Deaths from Influenza per 100,000 people")
 
 ggplot(Tub, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
-  scale_color_manual(values=colors[0:41])
+  scale_color_manual(values=colors[0:41]) + ylab("Deaths from Tuberculosis per 100,000 people")
 
 ggplot(Neo, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
-  scale_color_manual(values=colors[0:41])
+  scale_color_manual(values=colors[0:41]) + ylab("Deaths from Neoplasms per 100,000 people")
 
 ggplot(Pne, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
-  scale_color_manual(values=colors[0:41])
+  scale_color_manual(values=colors[0:41]) + ylab("Deaths from Pneumonia per 100,000 people")
 ```
 
 
@@ -148,54 +148,49 @@ final = left_join(final,PublicExp, by = c("Country"="Country","Year"="Year"))
 names(final) <- c("Country", "Year", "HIV", "Influenza", "Tuberculosis", "Neoplasms", "Pneumonia","Employment","Population", "GDP","Coverage","GovtExp","PublicExp")
 
 final = unique(final)
-
-HIV = final[final$Variable == "HIV-AIDS",]
-Flu = final[final$Variable == "Influenza",]
-Tub = final[final$Variable == "Tuberculosis",]
-Neo = final[final$Variable == "Neoplasms",]
-Pne= final[final$Variable == "Pneumonia",]
 ```
 
 
 #### Exercise 4
 
 ```{r}
-mHIV = lm(final$HIV ~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp)
+mHIV = lm(final$HIV ~ final$Year + final$Employment + final$Coverage + final$PublicExp)
 summary(mHIV)
 
-mFlu = lm(final$Influenza ~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp)
+mFlu = lm(final$Influenza ~ final$Year + final$Employment + final$Population + final$GDP)
 summary(mFlu)
 
-mTub = lm(final$Tuberculosis ~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp)
+mTub = lm(final$Tuberculosis ~  final$Population + final$GDP + final$GovtExp+final$Coverage*final$Population+final$Coverage*final$Employment)
 summary(mTub)
 
-mPne = lm(final$Pneumonia ~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp)
+mPne = lm(final$Pneumonia ~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp )
 summary(mPne)
 
-mNeo = lm(final$Neoplasms~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp)
+mNeo = lm(final$Neoplasms~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp)
 summary(mNeo)
+
 ```
 
 So in summary:
 
-Our model for HIV had an R-squared of 0.2273 and found that the Year, Employment, Coverage, and Public Expenditure were statistically significant variables.
+Our model for HIV had an R-squared of 0.2264 and found that the Year, Employment, Coverage, and Public Expenditure were statistically significant variables.
 
-Our model for Influenza had an R-squared of 0.3002 and found that the Year, Employment,Population and GDP were statistically significant variables (Public Expenditure just missed the cutoff).
+Our model for Influenza had an R-squared of 0.2647 and found that the Year, Employment,Population and GDP were statistically significant variables (Public Expenditure just missed the cutoff).
 
-Our model for Tuberculosis had an R-squared of 0.3575 and found that the Population, Coverage, Government Expenditure and Public Expenditure were statistically significant variables.
+Our model for Tuberculosis had an R-squared of 0.3871 and found that the Population, GovtExp, Coverage, Employment, the interaction term between population and coverage were statistically significant variables.
 
 Our model for Pneumonia had an R-squared of 0.2719 and found that all of our variables were statistically significant variables.
 
-Our model for Neoplasms had an R-squared of 0.3741 and found that the Year, Population, GDP Coverage, and Government Expenditure were statistically significant variables.
+Our model for Neoplasms had an R-squared of 0.3724 and found that the Year, Population, GDP Coverage, and Government Expenditure were statistically significant variables.
 
 Now, undoubtally there are some variables effecting this data that are not in this data set. There are a tens of thousands of  variables that could effect these death rates, everything from the climate to the form of government. To try and account for many of these, let's add Country to the list of variables as a proxy for the variables that we have not accounted for but are mostly static for a given country.
 
 ```{r}
 
-m2HIV = lm(final$HIV ~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp + final$Country)
+m2HIV = lm(final$HIV ~ final$Year + final$Population + final$GDP + final$Country)
 summary(m2HIV)
 
-m2Flu = lm(final$Influenza ~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp + final$Country)
+m2Flu = lm(final$Influenza ~ final$Year + final$Population + final$GDP + final$GovtExp + final$PublicExp + final$Country)
 summary(m2Flu)
 
 m2Tub = lm(final$Tuberculosis ~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp + final$Country)
@@ -207,7 +202,7 @@ summary(m2Pne)
 m2Neo = lm(final$Neoplasms~ final$Year + final$Employment + final$Population + final$GDP + final$Coverage + final$GovtExp + final$PublicExp + final$Country)
 summary(m2Neo)
 ```
-This model for HIV had an R-squared of 0.7729, an increase of 0.5456 from our previous model.
+This model for HIV had an R-squared of 0.7999, an increase of 0.5456 from our previous model.
 
 This model for Influenza had an R-squared of 0.4816, an increase of 0.1814 from our previous model.
 
@@ -222,12 +217,13 @@ So HIV, Tuberculosis, Pneumonia and Neoplasms are all heavily effected by variab
 To get a visual idea of how good this model is, let's look at this graph showing the actual HIV rate in Australia from 1990-2016 vs our predicted HIV rate in Australia from 1990-2016.
 ```{r}
 Aus = final[final$Country=="Australia",]
-prediction = predict.lm(mHIV, Aus)
-prediction = prediction[1:26]
+prediction1 = predict.lm(mHIV, Aus)
+prediction1 = prediction1[1:26]
 
 ggplot(Aus, aes(x = Year, y = HIV)) +
      geom_point() +
-  geom_line(aes(y = prediction), size = 1)
+  geom_line(aes(y = prediction1), size = 1)
+
 
 ```
 
@@ -281,6 +277,10 @@ y5 <- test5$Pneumonia
 cv_fit5 <- cv.glmnet(x5, y5, alpha = .8, lambda = lambdas)
 cv_fit5$lambda.min
 
+glmHIV <- glmnet(x1, y1, alpha = .8, lambda = 0.0158)
+
+summary(glmHIV$beta)
+coef(mHIV)
 ```
 
 Messing around with training and test data, test data for lm is wonky
@@ -288,12 +288,12 @@ Messing around with training and test data, test data for lm is wonky
 set.seed(42)
 train = sample(1:nrow(x1), nrow(x1)/2)
 
-View(train)
 
 x1_train = x1[train,]
 y1_train = y1[train]
 x1_test = x1[-train,]
 y1_test = y1[-train]
+
 
 
 fit1 <- glmnet(x1_train, y1_train, alpha = .8, lambda = 0.0158)
@@ -302,20 +302,73 @@ preds <- predict(fit1,newx = x1_test)
 actual <- y1_test
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
-rsq <- 1 - rss/tss
-rsq
-length(y1_test)
-mHIV = lm(y1_train ~ x1_train)
+rsq1 <- 1 - rss/tss
+rsq1
 
-preds2 <- predict(mHIV, y1_test[1])
-length(actual)
-rss <- sum((preds2 - actual) ^ 2)
+
+x2_train = x2[train,]
+y2_train = y2[train]
+x2_test = x2[-train,]
+y2_test = y2[-train]
+
+fit2 <- glmnet(x2_train, y2_train, alpha = .8, lambda = 0.0158)
+
+preds <- predict(fit2,newx = x2_test)
+actual <- y2_test
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq2 <- 1 - rss/tss
+rsq2
+
+
+
+x3_train = x3[train,]
+y3_train = y3[train]
+x3_test = x3[-train,]
+y3_test = y3[-train]
+
+fit3 <- glmnet(x3_train, y3_train, alpha = .8, lambda = 0.0158)
+
+preds <- predict(fit3,newx = x3_test)
+actual <- y3_test
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq3 <- 1 - rss/tss
+rsq3
+
+
+
+x4_train = x4[train,]
+y4_train = y4[train]
+x4_test = x4[-train,]
+y4_test = y4[-train]
+
+fit4 <- glmnet(x4_train, y4_train, alpha = .8, lambda = 0.0158)
+
+preds <- predict(fit4,newx = x4_test)
+actual <- y4_test
+rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq <- 1 - rss/tss
 rsq
 
-binded = cbind(preds,preds2,actual)
-binded
+
+
+x5_train = x5[train,]
+y5_train = y5[train]
+x5_test = x5[-train,]
+y5_test = y5[-train]
+
+fit5 <- glmnet(x5_train, y5_train, alpha = .8, lambda = 0.0158)
+
+preds <- predict(fit5,newx = x5_test)
+actual <- y5_test
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq5 <- 1 - rss/tss
+rsq5
+
+
 ```
 
 
@@ -331,19 +384,21 @@ train = sample(1:nrow(temp), nrow(temp)/2)
 temp.pca <- prcomp(na.omit(cbind(temp[,2],temp[8:13])))
 summary(temp.pca)
 
+
 temp$PC1 <- temp.pca$x[,1]
 temp$PC2 <- temp.pca$x[,2]
+temp$PC3 <- temp.pca$x[,3]
+temp$PC4 <- temp.pca$x[,4]
+
 ggplot(temp, aes(x = PC1, y = PC2, colour = as.factor(temp$HIV))) + geom_point()
 
-ggplot(poverty, aes(x = PC1, y = PC2, colour = as.factor(poverty))) + geom_point()+ geom_text(aes(label = State))
 
-ggplot(poverty, aes(x = PC1, y = PC2, colour = as.factor(poverty$k4))) + geom_point()+ geom_text(aes(label = State))
 
 coef(fit1)
 summary(mHIV)
 tree.HIV = tree(HIV ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
 summary(tree.HIV)
-View(tree.HIV)
+
 preds <- predict(tree.HIV,newx = temp[-train,])
 actual <- temp[-train,3]
 rss <- sum((preds - actual) ^ 2)
@@ -351,9 +406,6 @@ tss <- sum((actual - mean(actual)) ^ 2)
 rsq <- 1 - rss/tss
 rsq
 
-final[-train,3]
-actual
-fo
 ```
 
 
