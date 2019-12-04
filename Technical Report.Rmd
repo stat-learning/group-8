@@ -13,9 +13,10 @@ library(tidyverse)
 library(broom)
 library(glmnet)
 library(ggplot2)
+library(tree)
 library(imager)
 library(dplyr)
-
+library(ISLR)
 OECD <- load.image("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/OECD_member_states_map.svg/2560px-OECD_member_states_map.svg.png")
 
 ```
@@ -69,7 +70,7 @@ Tub = death_rates[death_rates$Variable == "Tuberculosis",]
 Neo = death_rates[death_rates$Variable == "Neoplasms",]
 Pne= death_rates[death_rates$Variable == "Pneumonia",]
 
-ggplot(HIV, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+ggplot(final, aes(x=Year, y=HIV,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
   scale_color_manual(values=colors[0:41])
   
@@ -212,16 +213,17 @@ ggplot(Aus, aes(x = Year, y = HIV)) +
 
 ```
 
+Finding optimal lambdas for glm
 ```{r}
 set.seed(42)
-predicted = predict(mHIV, final)
+
 
 testH = na.omit(final[,-4:-7])
 
-View(testH)
+
 x1 <- testH %>% select(Year, Employment, Population, GDP, Coverage, GovtExp, PublicExp) %>% data.matrix()
 y1 <- testH$HIV
-lambdas <- 10^seq(3, -20, by = -.1)
+lambdas <- 10^seq(3, -10, by = -.1)
 cv_fit <- cv.glmnet(x1, y1, alpha = .8, lambda = lambdas)
 
 cv_fit$lambda.min
@@ -263,39 +265,127 @@ cv_fit5$lambda.min
 
 ```
 
+Messing around with training and test data, test data for lm is wonky
 ```{r}
+set.seed(42)
 train = sample(1:nrow(x1), nrow(x1)/2)
+
+View(train)
+
+x1_train = x1[train,]
+y1_train = y1[train]
 x1_test = x1[-train,]
 y1_test = y1[-train]
-dim(x1_test)
-fit1 <- glmnet(x1_test, y1_test, alpha = .8, lambda = 0.0158)
-summary(fit1)
-cv_fit$lambda.min
-preds <- predict(fit1,newx = x1[train,])
-actual <- y1[train]
+
+
+fit1 <- glmnet(x1_train, y1_train, alpha = .8, lambda = 0.0158)
+
+preds <- predict(fit1,newx = x1_test)
+actual <- y1_test
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq <- 1 - rss/tss
+rsq
+length(y1_test)
+mHIV = lm(y1_train ~ x1_train)
 
-
-mHIV = lm(y1_test ~ x1_test)
-summary(mHIV)
-preds2 <- predict(mHIV,newx = x1[train,])
-preds2
-actual
-actual <- y1[train]
-rss <- sum((preds2 - actual2) ^ 2)
+preds2 <- predict(mHIV, y1_test[1])
+length(actual)
+rss <- sum((preds2 - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq <- 1 - rss/tss
 rsq
+
+binded = cbind(preds,preds2,actual)
+binded
 ```
 
 
-
+Messing around with PCA
 ```{r}
 
+set.seed(42)
+
+temp = na.omit(final)
+
+dim(temp)
+train = sample(1:nrow(temp), nrow(temp)/2)
+temp.pca <- prcomp(na.omit(cbind(temp[,2],temp[8:13])))
+summary(temp.pca)
+
+temp$PC1 <- temp.pca$x[,1]
+temp$PC2 <- temp.pca$x[,2]
+ggplot(temp, aes(x = PC1, y = PC2, colour = as.factor(temp$HIV))) + geom_point()
+
+ggplot(poverty, aes(x = PC1, y = PC2, colour = as.factor(poverty))) + geom_point()+ geom_text(aes(label = State))
+
+ggplot(poverty, aes(x = PC1, y = PC2, colour = as.factor(poverty$k4))) + geom_point()+ geom_text(aes(label = State))
+
 coef(fit1)
-
 summary(mHIV)
+tree.HIV = tree(HIV ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
+summary(tree.HIV)
+View(tree.HIV)
+preds <- predict(tree.HIV,newx = temp[-train,])
+actual <- temp[-train,3]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq <- 1 - rss/tss
+rsq
 
+final[-train,3]
+actual
+fo
 ```
+
+
+Tree analysis
+```{r}
+
+set.seed(42)
+
+temp = na.omit(final)
+train = sample(1:nrow(temp), nrow(temp)/2)
+temp.pca <- prcomp(na.omit(cbind(temp[,2],temp[8:13])))
+tree.HIV = tree(HIV ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
+
+preds <- predict(tree.HIV,newx = temp[-train,])
+actual <- temp[-train,3]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq1 <- 1 - rss/tss
+rsq1
+
+tree.Flu = tree(Influenza ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
+preds <- predict(tree.Flu,newx = temp[-train,])
+actual <- temp[-train,4]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq2 <- 1 - rss/tss
+rsq2
+
+tree.Tub = tree(Tuberculosis ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
+preds <- predict(tree.Tub,newx = temp[-train,])
+actual <- temp[-train,5]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq3 <- 1 - rss/tss
+rsq3
+
+tree.Neo = tree(Neoplasms ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
+preds <- predict(tree.Neo,newx = temp[-train,])
+actual <- temp[-train,6]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq4 <- 1 - rss/tss
+rsq4
+
+tree.Pne = tree(Pneumonia ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
+preds <- predict(tree.Pne,newx = temp[-train,])
+actual <- temp[-train,7]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsq5 <- 1 - rss/tss
+rsq5
+```
+
