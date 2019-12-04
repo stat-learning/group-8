@@ -59,6 +59,24 @@ PublicExp = cbind(PublicExp[10],PublicExp[12],PublicExp[19])
 
 Let's start by plotting the number of deaths per 100,000 people for each of our five causes of death by year. Each of the 41 countries has been given a unique color and shape combination in order to indentify it and track it.
 
+Units: 
+
+All disease variables are reported as deaths per 100,000 people
+
+Employment represents number of people whose job involves human health activities, residential care and social work activities per 1,000 people.
+
+Population is the population of the country measured in thousands of people.
+
+GDP is measured in US dollars per capita
+
+Coverage represents the percentage of the population who are covered by public or private insurance.
+
+GovtExp is the amount of money the government spends per person on healthcare costs with a constant PPP (also includes compulsory healthcare costs)
+
+PublicExp is the amount of money individuals spend on healthcare per capita with a constant PPP.
+
+
+
 ```{r}
 colors = rep(c("black","red","blue","green","violet","yellow","orange"),6)
 shapes = rep(c(1,2,3,4,5,6),7)
@@ -387,5 +405,15 @@ rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq5 <- 1 - rss/tss
 rsq5
+plot(tree.Neo)
+text(tree.Neo)
+plot(tree.Flu)
+text(tree.Flu)
+plot(tree.HIV)
+text(tree.HIV)
+plot(tree.Tub)
+text(tree.Tub)
+plot(tree.Pne)
+text(tree.Pne)
 ```
 
