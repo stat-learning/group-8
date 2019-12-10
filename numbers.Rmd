@@ -1,0 +1,162 @@
+---
+title: "numbers"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+```{r}
+
+knitr::opts_chunk$set(message = F, warning = F)
+library(tidyverse)
+library(ggplot2)
+library(tree)
+library(dplyr)
+
+```
+
+
+```{r}
+
+### this chunk loads in and trims data
+
+death_rates <- read_csv("data/death_rates.csv")
+death_rates <- death_rates[c(2,6,8,9)]
+death_hiv <- subset(death_rates,
+                    Variable == "HIV-AIDS",
+                    select = c(Country, Year, Value))
+death_flu <- subset(death_rates,
+                    Variable == "Influenza",
+                    select = c(Country, Year, Value))
+death_tub <- subset(death_rates,
+                    Variable == "Tuberculosis",
+                    select = c(Country, Year, Value))
+death_neo <- subset(death_rates,
+                    Variable == "Neoplasms",
+                    select = c(Country, Year, Value))
+death_pnu <- subset(death_rates,
+                    Variable == "Pneumonia",
+                    select = c(Country, Year, Value))
+
+employment <- read_csv("data/employment.csv")
+employment <- employment[c(6,8,9)]
+
+GDPs <- read_csv("data/GDPs.csv")
+GDPs <- GDPs[c(6,8,9)]
+
+insurance <- read_csv("data/insurance.csv")
+insurance <- insurance[c(6,8,9)]
+
+populations <- read_csv("data/populations.csv")
+populations <- populations[c(5,6,8,9)]
+
+public_exp <- read_csv("data/PublicExp.csv")
+public_exp <- public_exp[c(10,12,19)]
+
+govt_exp <- read_csv("data/GovtExp.csv")
+govt_exp <- govt_exp[c(10,12,19)]
+
+```
+
+```{r}
+
+### this chunk aggregates data by country
+
+set_country <- function(ctrcode){
+  ctr <- subset(populations,
+                COU == ctrcode)
+  names(ctr)[4] <- "Population"
+  ctr
+}
+
+add_pred <- function(country, df){
+  pred_df <- subset(df, Country == country$Country[1])
+  pred <- rep(NA, nrow(country))
+  if(nrow(pred_df) != 0){
+    k <- 1
+    for(i in 1:nrow(country)){
+      if(country$Year[i] == pred_df$Year[k]){
+        pred[i] <- pred_df$Value[k]
+        k <- k + 1
+      }
+      if(k > nrow(pred_df)){
+        break
+      }
+    }
+  }
+  pred
+}
+
+ctr_codes <- levels(as.factor(populations$COU))
+predictors <- c("death_hiv", "death_flu",
+                "death_tub", "death_neo",
+                "death_pnu", "employment",
+                "GDPs", "insurance",
+                "public_exp", "govt_exp")
+
+for(n in 1:length(ctr_codes)){
+  country_temp <- set_country(ctr_codes[n])
+  
+  for(m in 1:length(predictors)){
+    pred_temp <- get(predictors[m])
+    newcol <- add_pred(country_temp, pred_temp)
+    country_temp <- cbind(country_temp, newcol)
+    names(country_temp)[m+4] <- predictors[m]
+  }
+  
+  assign(ctr_codes[n], country_temp)
+}
+
+```
+
+```{r}
+
+### this chunk plots missingness
+
+missingness <- data.frame("Year" = 1960:2018,
+                          "death_hiv" = 0, "death_flu" = 0,
+                          "death_tub" = 0, "death_neo" = 0,
+                          "death_pnu" = 0, "employment" = 0,
+                          "GDPs" = 0, "insurance" = 0,
+                          "public_exp" = 0, "govt_exp" = 0)
+miss_per <- data.frame("Country" = ctr_codes,
+                       "Percent" = 0)
+
+for(n in 1:length(ctr_codes)){
+  curr_country <- get(ctr_codes[n])
+  curr_count <- 0
+  for(a in 5:ncol(curr_country)){
+    for(b in 1:nrow(curr_country)){
+      if(is.na(curr_country[b,a])){
+        missingness[b,a-3] <- missingness[b,a-3] + 1
+        curr_count <- curr_count + 1
+      }
+    }
+  }
+  miss_per$Percent[n] <- curr_count / 590
+}
+
+miss2 <- data.frame("Predictor" = rep(predictors, rep(59, 10)),
+                    "Year" = rep(1960:2018, 10),
+                    "Count" = c(missingness[[2]], missingness[[3]],
+                                missingness[[4]], missingness[[5]],
+                                missingness[[6]], missingness[[7]],
+                                missingness[[8]], missingness[[9]],
+                                missingness[[10]], missingness[[11]]) / 44)
+
+ggplot(miss2, aes(x = Year, y = Count, color = Predictor)) +
+  geom_line() +
+  theme_light() +
+  ylab("Proportion Data Missing")
+
+ggplot(miss_per, aes(x = Country, y = Percent)) +
+  geom_bar(stat = "Identity") +
+  theme_light() +
+  ylab("Proportion Data Missing")
+
+```
+
+```{r}
+
+
+
+```
