@@ -17,6 +17,7 @@ library(tree)
 library(imager)
 library(dplyr)
 library(ISLR)
+library(gbm)
 OECD <- load.image("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/OECD_member_states_map.svg/2560px-OECD_member_states_map.svg.png")
 
 ```
@@ -372,6 +373,7 @@ rsq5
 ```
 
 
+
 Messing around with PCA
 ```{r}
 
@@ -469,3 +471,20 @@ plot(tree.Pne)
 text(tree.Pne)
 ```
 
+
+Boosted Tree
+
+```{r}
+
+gbm1 <- gbm(HIV ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, data = temp[train,], distribution="gaussian", n.trees=50, interaction.depth=2)
+summary(gbm1)
+
+
+preds = predict(gbm1, temp[-train,], n.trees = 50, type = "response")
+actual <- temp[-train,3]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqb1 <- 1 - rss/tss
+rsqb1
+
+```
