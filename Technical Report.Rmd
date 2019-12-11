@@ -89,23 +89,23 @@ Tub = death_rates[death_rates$Variable == "Tuberculosis",]
 Neo = death_rates[death_rates$Variable == "Neoplasms",]
 Pne= death_rates[death_rates$Variable == "Pneumonia",]
 
-ggplot(HIV, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+ggplot(final, aes(x=Year, y=HIV,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
   scale_color_manual(values=colors[0:41]) + ylab("Deaths from HIV-AIDs per 100,000 people")
   
-ggplot(Flu, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+ggplot(final, aes(x=Year, y=Influenza,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
   scale_color_manual(values=colors[0:41]) + ylab("Deaths from Influenza per 100,000 people")
 
-ggplot(Tub, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+ggplot(final, aes(x=Year, y=Tuberculosis,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
   scale_color_manual(values=colors[0:41]) + ylab("Deaths from Tuberculosis per 100,000 people")
 
-ggplot(Neo, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+ggplot(final, aes(x=Year, y=Neoplasms,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
   scale_color_manual(values=colors[0:41]) + ylab("Deaths from Neoplasms per 100,000 people")
 
-ggplot(Pne, aes(x=Year, y=Value,color=Country,shape=Country)) + geom_point()+
+ggplot(final, aes(x=Year, y=Pneumonia,color=Country,shape=Country)) + geom_point()+
   scale_shape_manual(values=shapes[0:41])+
   scale_color_manual(values=colors[0:41]) + ylab("Deaths from Pneumonia per 100,000 people")
 ```
@@ -392,16 +392,16 @@ temp$PC2 <- temp.pca$x[,2]
 temp$PC3 <- temp.pca$x[,3]
 temp$PC4 <- temp.pca$x[,4]
 
-ggplot(temp, aes(x = PC1, y = PC2, colour = as.factor(temp$HIV))) + geom_point()
+ggplot(temp, aes(x = PC1+PC2+PC3+PC4, y = HIV)) + geom_point()
 
 
 
 coef(fit1)
 summary(mHIV)
-tree.HIV = tree(HIV ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
+tree.HIV = tree(HIV ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[train,])
 summary(tree.HIV)
 
-preds <- predict(tree.HIV,newx = temp[-train,])
+preds <- predict(tree.HIV,temp[-train,])
 actual <- temp[-train,3]
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
@@ -419,47 +419,47 @@ set.seed(42)
 temp = na.omit(final)
 train = sample(1:nrow(temp), nrow(temp)/2)
 temp.pca <- prcomp(na.omit(cbind(temp[,2],temp[8:13])))
-tree.HIV = tree(HIV ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
+tree.HIV = tree(HIV ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[train,])
 
-preds <- predict(tree.HIV,newx = temp[-train,])
+preds <- predict(tree.HIV, temp[-train,])
 actual <- temp[-train,3]
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq1 <- 1 - rss/tss
 rsq1
 
-tree.Flu = tree(Influenza ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
-preds <- predict(tree.Flu,newx = temp[-train,])
+tree.Flu = tree(Influenza ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[train,])
+preds <- predict(tree.Flu,temp[-train,])
 actual <- temp[-train,4]
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq2 <- 1 - rss/tss
 rsq2
 
-tree.Tub = tree(Tuberculosis ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
-preds <- predict(tree.Tub,newx = temp[-train,])
+tree.Tub = tree(Tuberculosis ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[train,])
+preds <- predict(tree.Tub,temp[-train,])
 actual <- temp[-train,5]
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq3 <- 1 - rss/tss
 rsq3
 
-tree.Neo = tree(Neoplasms ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
-preds <- predict(tree.Neo,newx = temp[-train,])
+tree.Neo = tree(Neoplasms ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[train,])
+preds <- predict(tree.Neo,temp[-train,])
 actual <- temp[-train,6]
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq4 <- 1 - rss/tss
 rsq4
 
-tree.Pne = tree(Pneumonia ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[-train,])
-preds <- predict(tree.Pne,newx = temp[-train,])
+tree.Pne = tree(Pneumonia ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[train,])
+preds <- predict(tree.Pne,temp[-train,])
 actual <- temp[-train,7]
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsq5 <- 1 - rss/tss
 rsq5
-plot(tree.Neo)
+  plot(tree.Neo)
 text(tree.Neo)
 plot(tree.Flu)
 text(tree.Flu)
@@ -476,15 +476,76 @@ Boosted Tree
 
 ```{r}
 
-gbm1 <- gbm(HIV ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, data = temp[train,], distribution="gaussian", n.trees=50, interaction.depth=2)
-summary(gbm1)
+gbm1 <- gbm(HIV ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
 
 
-preds = predict(gbm1, temp[-train,], n.trees = 50, type = "response")
+preds = predict(gbm1, temp[-train,], n.trees = 1000, type = "response")
 actual <- temp[-train,3]
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsqb1 <- 1 - rss/tss
 rsqb1
 
+
+gbm2 <- gbm(Influenza ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, data = temp[train,], distribution="gaussian", n.trees=50, interaction.depth=2)
+
+
+preds = predict(gbm2, temp[-train,], n.trees = 50, type = "response")
+actual <- temp[-train,4]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqb2 <- 1 - rss/tss
+rsqb2
+
+gbm3 <- gbm(Tuberculosis ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
+
+
+
+preds = predict(gbm3, temp[-train,], n.trees = 1000, type = "response")
+actual <- temp[-train,5]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqb3 <- 1 - rss/tss
+rsqb3
+
+gbm4 <- gbm(Neoplasms ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
+
+
+
+preds = predict(gbm4, temp[-train,], n.trees = 1000, type = "response")
+actual <- temp[-train,6]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqb4 <- 1 - rss/tss
+rsqb4
+
+gbm5 <- gbm(Pneumonia ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
+
+
+
+preds = predict(gbm5, temp[-train,], n.trees = 1000, type = "response")
+actual <- temp[-train,7]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqb5 <- 1 - rss/tss
+rsqb5
+```
+
+
+
+Boosted Tree
+
+```{r}
+
+
+rsq1
+rsq2
+rsq3
+rsq4
+rsq5
+rsqb1 - rsq1
+rsqb2 - rsq2
+rsqb3 - rsq3
+rsqb4 - rsq4
+rsqb5 - rsq5
 ```
