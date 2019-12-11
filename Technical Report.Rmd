@@ -215,18 +215,6 @@ This model for Neoplasms had an R-squared of 0.9648, an increase of 0.5907 from 
 
 So HIV, Tuberculosis, Pneumonia and Neoplasms are all heavily effected by variables that we do not have that are baked in to each of our countries, while Influenza is only mildly effected by these variables.
 
-To get a visual idea of how good this model is, let's look at this graph showing the actual HIV rate in Australia from 1990-2016 vs our predicted HIV rate in Australia from 1990-2016.
-```{r}
-Aus = final[final$Country=="Australia",]
-prediction1 = predict.lm(mHIV, Aus)
-prediction1 = prediction1[1:26]
-
-ggplot(Aus, aes(x = Year, y = HIV)) +
-     geom_point() +
-  geom_line(aes(y = prediction1), size = 1)
-
-
-```
 
 Finding optimal lambdas for glm
 ```{r}
@@ -392,21 +380,8 @@ temp$PC2 <- temp.pca$x[,2]
 temp$PC3 <- temp.pca$x[,3]
 temp$PC4 <- temp.pca$x[,4]
 
+predict
 ggplot(temp, aes(x = PC1+PC2+PC3+PC4, y = HIV)) + geom_point()
-
-
-
-coef(fit1)
-summary(mHIV)
-tree.HIV = tree(HIV ~Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, temp[train,])
-summary(tree.HIV)
-
-preds <- predict(tree.HIV,temp[-train,])
-actual <- temp[-train,3]
-rss <- sum((preds - actual) ^ 2)
-tss <- sum((actual - mean(actual)) ^ 2)
-rsq <- 1 - rss/tss
-rsq
 
 ```
 
@@ -521,14 +496,16 @@ rsqb4
 
 gbm5 <- gbm(Pneumonia ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
 
-
-
 preds = predict(gbm5, temp[-train,], n.trees = 1000, type = "response")
 actual <- temp[-train,7]
 rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsqb5 <- 1 - rss/tss
 rsqb5
+
+View(gbm5)
+plot(gbm1)
+
 ```
 
 
@@ -536,16 +513,130 @@ rsqb5
 Boosted Tree
 
 ```{r}
+tempHIV = na.omit(HIV)
+tempHIV = tempHIV
+ggplot(tempHIV, aes(x=Year, y=gbm1,color=Country,shape=Country)) + geom_point()+
+  scale_shape_manual(values=shapes[0:41])+
+  scale_color_manual(values=colors[0:41]) + ylab("Deaths from Neoplasms per 100,000 people")
+
+gbmf1 = 
+```
 
 
-rsq1
-rsq2
-rsq3
-rsq4
-rsq5
-rsqb1 - rsq1
-rsqb2 - rsq2
-rsqb3 - rsq3
-rsqb4 - rsq4
-rsqb5 - rsq5
+Lagged variables
+
+```{r}
+
+HIVLag = lag(final$HIV)
+FluLag = lag(final$Influenza)
+TubLag = lag(final$Tuberculosis)
+NeoLag = lag(final$Neoplasms)
+PneLag = lag(final$Pneumonia)
+View(HIVlag)
+
+final$HIVLag <- HIVLag
+final$FluLag <- FluLag
+final$TubLag <- TubLag
+final$NeoLag <- NeoLag
+final$PneLag <- PneLag
+
+temp = na.omit(final)
+dim(temp)
+temp = temp[temp$Year >1990,]
+gbml1 <- gbm(HIV ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp + HIVLag, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
+
+preds = predict(gbml1, temp[-train,], n.trees = 1000, type = "response")
+actual <- temp[-train,3]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqbl1 <- 1 - rss/tss
+rsqbl1
+rsqb1
+
+
+gbml2 <- gbm(Influenza ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp + FluLag, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
+
+preds = predict(gbml2, temp[-train,], n.trees = 1000, type = "response")
+actual <- temp[-train,4]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqbl2 <- 1 - rss/tss
+rsqbl2
+rsqb2
+
+gbml3 <- gbm(Tuberculosis ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp + TubLag, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
+
+preds = predict(gbml3, temp[-train,], n.trees = 1000, type = "response")
+actual <- temp[-train,5]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqbl3 <- 1 - rss/tss
+rsqbl3
+rsqb3
+
+gbml4 <- gbm(Neoplasms ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp + TubLag, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
+
+preds = predict(gbml4, temp[-train,], n.trees = 1000, type = "response")
+actual <- temp[-train,6]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqbl4 <- 1 - rss/tss
+rsqbl4
+rsqb4
+
+gbml5 <- gbm(Pneumonia ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp + PneLag, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
+
+preds = predict(gbml5, temp[-train,], n.trees = 1000, type = "response")
+actual <- temp[-train,7]
+rss <- sum((preds - actual) ^ 2)
+tss <- sum((actual - mean(actual)) ^ 2)
+rsqbl5 <- 1 - rss/tss
+rsqbl5
+rsqb5
+```
+Best Models
+```{r}
+mHIV = gbml1
+mFlu = gbm2
+mTB = gbml3
+mNeo = gbml4
+mPne = gbml5
+
+
+```
+
+
+```{r}
+Aus = temp[temp$Country=="Australia",]
+
+prediction3 = predict(gbml2, Aus, n.trees = 1000, type = "response",)
+prediction4 = predict(gbm2, Aus, n.trees = 50, type = "response")
+prediction1 = predict(gbml1, Aus, n.trees = 1000, type = "response",)
+prediction2 = predict(gbm1, Aus, n.trees = 1000, type = "response")
+
+ggplot(Aus, aes(x = Year, y = Influenza)) +
+     geom_point() +
+  geom_line(aes(y = prediction4), color = "green", size = 1)+
+  geom_line(aes(y = prediction3), color = "red", size = 1)
+
+ggplot(Aus, aes(x = Year, y = HIV)) +
+     geom_point() +
+  geom_line(aes(y = prediction2), color = "green",size = 1) + geom_line(aes(y = prediction1), color = "red", size = 1)
+
+predictionHIV = predict(gbml1, temp, n.trees = 1000, type = "response")
+predictionFlu = predict(gbm2, temp, n.trees = 50, type = "response")
+predictionTB = predict(gbml3, temp, n.trees = 1000, type = "response")
+predictionNeo = predict(gbml4, temp, n.trees = 1000, type = "response")
+predictionPne = predict(gbml5, temp, n.trees = 1000, type = "response")
+
+ggplot(temp, aes(x = Year, y = HIV-predictionHIV)) + geom_point()
+
+ggplot(temp, aes(x = Year, y = Influenza-predictionFlu)) + geom_point()
+
+ggplot(temp, aes(x = Year, y = Tuberculosis-predictionTB)) + geom_point()
+
+ggplot(temp, aes(x = Year, y = Neoplasms-predictionNeo)) + geom_point()
+
+ggplot(temp, aes(x = Year, y = Pneumonia-predictionPne)) + geom_point()
+
 ```
