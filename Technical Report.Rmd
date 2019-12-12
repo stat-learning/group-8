@@ -532,7 +532,7 @@ FluLag = lag(final$Influenza)
 TubLag = lag(final$Tuberculosis)
 NeoLag = lag(final$Neoplasms)
 PneLag = lag(final$Pneumonia)
-View(HIVlag)
+
 
 final$HIVLag <- HIVLag
 final$FluLag <- FluLag
@@ -541,7 +541,7 @@ final$NeoLag <- NeoLag
 final$PneLag <- PneLag
 
 temp = na.omit(final)
-dim(temp)
+
 temp = temp[temp$Year >1990,]
 gbml1 <- gbm(HIV ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp + HIVLag, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
 
@@ -562,7 +562,7 @@ rss <- sum((preds - actual) ^ 2)
 tss <- sum((actual - mean(actual)) ^ 2)
 rsqbl2 <- 1 - rss/tss
 rsqbl2
-rsqb2
+rsq2
 
 gbml3 <- gbm(Tuberculosis ~ Year + Employment + Population + GDP + Coverage + GovtExp + PublicExp + TubLag, data = temp[train,], distribution="gaussian", n.trees=1000, interaction.depth=3)
 
@@ -602,8 +602,16 @@ mTB = gbml3
 mNeo = gbml4
 mPne = gbml5
 
+rsqs <- matrix(c(0.203,0.252,0.262,0.325,0.276,0.346,0.450,0.127,0.673,0.509,0.537,0.438,0.729,0.847,0.737,0.906,0.405,0.924,0.871,0.896),ncol=4,byrow=FALSE)
+colnames(rsqs) <- c("Elastic Net","Random Forest","Boosted Tree", "Boosted Tree w/ Lag")
+rownames(rsqs) <- c("HIV-AIDs","Influenza", "Tuberculosis", "Neoplasms", "Pneumonia")
+View(rsqs)
+sd(na.omit(final$Influenza))
+mean(na.omit(final$Influenza))
 
 ```
+
+Overall we found that for every cause of death except for Influenza, the Elastic Net performed the worst, the Random Forest performed the third best, the Boosted Tree performed the second best and the Boosted Tree with a unit of lag performed the best. For Influenza, the Elastic Next still performed the worst, but the next worst model was the Boosted Tree with a unit of lag, followed by a regular Boosted Tree with a Random Forest being the best model at predicting Influenza. We believe this is because Influenza is significantly different in how it is spread from the other diseases on this list. Flu outbreaks only happen for about a six week period each year and isn't a significant threat outside of those six weeks. 
 
 
 ```{r}
